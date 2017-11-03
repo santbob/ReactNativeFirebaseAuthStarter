@@ -1,23 +1,69 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {StyleSheet, Text, View, StatusBar, Platform} from 'react-native';
+import {createStore, combineReducers} from 'redux'
+import {Provider} from 'react-redux'
+import * as reducers from './reducers'
+
+import {Constants} from 'expo'
+
+import {MainNavigator} from './routes'
+import Splash from './components/Splash'
+import Authenticate from './components/Authenticate'
+
+import {primary} from './utils/colors'
+import {firebaseApp} from './utils/db'
+
+const store = createStore(combineReducers({
+    ...reducers
+}))
+
+function AppStatusBar({
+  backgroundColor,
+  ...props
+}) {
+  return (<View style={{
+      backgroundColor,
+      height: Constants.statusBarHeight
+    }}>
+    <StatusBar translucent="translucent" backgroundColor={backgroundColor} {...props}/>
+  </View>)
+}
 
 export default class App extends React.Component {
+  state = {
+    sessionChecked: false,
+    user: null
+  }
+  componentDidMount() {
+    firebaseApp.auth().onAuthStateChanged((user) => {
+      console.log("onAuthStateChanged ", user)
+      this.setState({sessionChecked: true, user})
+    })
+  }
+
+  renderViewBasedOnSessionCheck = () => {
+    const {sessionChecked, user} = this.state
+    if (sessionChecked) {
+      if (user) {
+        return (<View style={{
+            flex: 1
+          }}>
+          <AppStatusBar backgroundColor={primary} barStyle='light-content'/>
+          <MainNavigator/>
+        </View>)
+      } else {
+        return (<Authenticate show='signin' type="email"/>)
+      }
+    } else {
+      return (<Splash/>)
+    }
+  }
+
   render() {
     return (
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
-      </View>
+      <Provider store={store}>
+        {this.renderViewBasedOnSessionCheck()}
+      </Provider>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
