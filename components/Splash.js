@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     backgroundColor: primary
   },
   logo: {
-    width: 150,
+    width: 200,
     height: 200
   },
   title:{

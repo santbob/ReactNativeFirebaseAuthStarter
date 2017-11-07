@@ -10,7 +10,7 @@ import {MainNavigator} from './routes'
 import Splash from './components/Splash'
 import Authenticate from './components/Authenticate'
 
-import {primary} from './utils/colors'
+import {primaryDark} from './utils/colors'
 import {firebaseApp} from './utils/db'
 
 const store = createStore(combineReducers({
@@ -25,7 +25,7 @@ function AppStatusBar({
       backgroundColor,
       height: Constants.statusBarHeight
     }}>
-    <StatusBar translucent="translucent" backgroundColor={backgroundColor} {...props}/>
+    <StatusBar translucent={false} backgroundColor={backgroundColor} {...props}/>
   </View>)
 }
 
@@ -34,12 +34,14 @@ export default class App extends React.Component {
     sessionChecked: false,
     user: null
   }
+
   componentDidMount() {
     firebaseApp.auth().onAuthStateChanged((user) => {
-      console.log("onAuthStateChanged ", user)
       this.setState({sessionChecked: true, user})
     })
   }
+
+  component
 
   renderViewBasedOnSessionCheck = () => {
     const {sessionChecked, user} = this.state
@@ -48,7 +50,7 @@ export default class App extends React.Component {
         return (<View style={{
             flex: 1
           }}>
-          <AppStatusBar backgroundColor={primary} barStyle='light-content'/>
+          <AppStatusBar backgroundColor={primaryDark} barStyle='light-content'/>
           <MainNavigator/>
         </View>)
       } else {

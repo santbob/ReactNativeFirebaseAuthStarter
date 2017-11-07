@@ -8,11 +8,12 @@ import {
   StyleSheet
 } from 'react-native'
 
+import TextButton from './TextButton'
 import {connect} from 'react-redux'
-import { primary} from '../utils/colors'
+import {primary} from '../utils/colors'
 
-import { emailSignUp, emailSignIn } from '../utils/db'
-import { notifySignUp, notifySignIn } from '../actions'
+import {emailSignUp, emailSignIn} from '../utils/db'
+import {notifySignIn, notifySignOut} from '../actions'
 
 import Input from './Input'
 
@@ -26,56 +27,73 @@ class Authenticate extends Component {
     authenticating: false,
     user: null,
     error: '',
+    showing: 'signin'
   }
 
-  onSignIn() {
-    const {email, password} = this.state
-    const {notifySignIn} = this.props
+  componentDidMount() {
+    const {showing} = this.props
     this.setState({
-      authenticating: true,
-    });
-    emailSignUp({email, password}, (error, user) => {
-      if(error && !user){
-        this.setState({error, authenticating: false})
+      showing: showing || 'signin'
+    })
+  }
+
+  onSubmit() {
+    const {email, password, showing} = this.state
+    const {notifySignIn} = this.props
+    this.setState({authenticating: true});
+    const authenticateFn = (showing === 'signin')
+      ? emailSignIn
+      : emailSignUp
+    authenticateFn({
+      email,
+      password
+    }, (error, user) => {
+      if (error && !user) {
+        this.setState({error: error.message, authenticating: false})
       } else {
         this.setState({user, authenticating: false})
         notifySignIn(user)
       }
     })
   }
+
+  renderAuthenticationToggleView = () => {
+    const {showing} = this.state
+    if (showing === 'signin') {
+      return (<View style={styles.toggleSection}>
+        <Text style={styles.toggleText}>Don't have an account?</Text>
+        <TextButton style={styles.toggleText} onPress={() => this.setState({showing: 'signup'})}>Sign Up</TextButton>
+      </View>)
+    } else {
+      return (<View style={styles.toggleSection}><Text style={styles.toggleText}>Already have an account?
+      </Text>
+      <TextButton style={styles.toggleText} onPress={() => this.setState({showing: 'signin'})}>Sign In</TextButton></View>)
+    }
+  }
+
   render() {
 
     const {user} = this.props
-    if(user) {
-      return (
-        <View><Text>Successfully Signed In</Text></View>
-      )
+    const {showing} = this.state
+    if (user) {
+      return (<View>
+        <Text>Successfully Signed In</Text>
+      </View>)
     }
-    return (
-      <View style={styles.container}>
-        <Image
-          style={styles.logo}
-          source={require('../assets/logo.png')}
-        />
-        <Input
-          placeholder='Enter your email...'
-          label='Email'
-          onChangeText={email => this.setState({ email })}
-          value={this.state.email}
-        />
-        <Input
-          placeholder='Enter your password...'
-          label='Password'
-          secureTextEntry
-          onChangeText={password => this.setState({ password })}
-          value={this.state.password}
-        />
-        <TouchableOpacity style={[styles.btn]} onPress={() => this.onSignIn()}>
-          <Text style={styles.btnText}>Sign In</Text>
-        </TouchableOpacity>
-        <Text>{this.state.error}</Text>
-        </View>
-    )
+    return (<View style={styles.container}>
+      <Image style={styles.logo} source={require('../assets/logo.png')}/>
+      <Input placeholder='Enter your email...' label='Email' onChangeText={email => this.setState({email})} value={this.state.email}/>
+      <Input placeholder='Enter your password...' label='Password' secureTextEntry={true  } onChangeText={password => this.setState({password})} value={this.state.password}/>
+      <TouchableOpacity style={[styles.btn]} onPress={() => this.onSubmit()}>
+        <Text style={styles.btnText}>{
+            showing === 'signin'
+              ? 'Sign In'
+              : 'Sign Up'
+          }</Text>
+      </TouchableOpacity>
+      <Text>{this.state.error}</Text>
+      {this.renderAuthenticationToggleView()}
+    </View>)
   }
 }
 
@@ -85,7 +103,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: primary,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   logo: {
     width: 200,
@@ -115,6 +133,15 @@ const styles = StyleSheet.create({
     color: primary,
     fontSize: 22,
     textAlign: 'center'
+  },
+  toggleSection:{
+    flex:1,
+    flexDirection: 'row'
+  },
+  toggleText: {
+    color: white,
+    fontSize: 18,
+    marginRight: 5
   }
 });
 
