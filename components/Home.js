@@ -35,9 +35,6 @@ class Home extends Component {
   render() {
     const {user} = this.props
     console.log("user ", user)
-    // if (!this.state.ready) {
-    //   return (<AppLoading/>)
-    // }
     return (
       <View style={styles.container}>
         <Image
@@ -45,7 +42,7 @@ class Home extends Component {
           source={require('../assets/logo.png')}
         />
         <Text style={styles.title}>{user && user.email}</Text>
-        <Text style={styles.title}>Welcome to TeamApp</Text>
+        <Text style={styles.welcomemsg}>Welcome to TeamApp</Text>
         <TextButton onPress={this.logout}>Signout</TextButton>
       </View>
     )
@@ -65,7 +62,7 @@ const styles = StyleSheet.create({
   },
   title:{
     color: white,
-    fontSize: 44,
+    fontSize: 24,
     textAlign: 'center'
   },
   welcomemsg:{
